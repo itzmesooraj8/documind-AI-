@@ -1,0 +1,6 @@
+{
+  "name": "DocuMind AI",
+  "description": "Self-Healing Multi-Modal Hybrid Intelligence Search Engine powered by MongoDB Atlas Vector Search, $rankFusion, Python Cross-Encoder re-ranking, and Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
