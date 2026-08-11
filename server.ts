@@ -411,9 +411,9 @@ app.post('/api/search', authenticateJWT, async (req: AuthenticatedRequest, res: 
       const pipeline = [
         {
           $rankFusion: {
-            inputPipelines: [
-              {
-                subpipeline: [
+            input: {
+              pipelines: {
+                vectorPipeline: [
                   {
                     $vectorSearch: {
                       index: "vector_index",
@@ -423,10 +423,8 @@ app.post('/api/search', authenticateJWT, async (req: AuthenticatedRequest, res: 
                       limit: 20
                     }
                   }
-                ]
-              },
-              {
-                subpipeline: [
+                ],
+                textPipeline: [
                   {
                     $search: {
                       index: "default",
@@ -436,7 +434,7 @@ app.post('/api/search', authenticateJWT, async (req: AuthenticatedRequest, res: 
                   { $limit: 20 }
                 ]
               }
-            ]
+            }
           }
         },
         { $limit: topK }
@@ -865,12 +863,20 @@ ${docsContext}
 Provide a concise, direct, professional answer (2-3 paragraphs max) answering the query based ONLY on the provided document context.
 Include explicit inline citations like [Doc 1], [Doc 2] whenever referencing information.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt
-    });
-
-    const text = response.text || 'Unable to synthesize response.';
+    let text = '';
+    try {
+      const ai = getGeminiClient();
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt
+      });
+      text = response.text || '';
+    } catch (e: any) {
+      console.warn('[Gemini Grounded Synthesis]: API key missing or call failed. Using contextual document synthesis.');
+      text = documents.slice(0, 3).map((d: any, i: number) => 
+        `According to [Doc ${i + 1} - ${d.title}]: ${d.content}`
+      ).join('\n\n');
+    }
 
     const citations = documents.slice(0, 5).map((d: any, i: number) => ({
       docId: d._id,
