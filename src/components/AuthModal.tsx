@@ -195,16 +195,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
           </div>
 
           {activeTab === 'register' && (
-            <div>
-              <label className="block text-slate-400 mb-1">Role Permission:</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full bg-[#0A0C10] border border-[#2D333F] rounded-xl px-3 py-2.5 text-white focus:border-[#00ED64] focus:outline-none"
-              >
-                <option value="user">User (Search & View)</option>
-                <option value="admin">Admin (Full Ingestion, Reindex & Repair)</option>
-              </select>
+            <div className="p-3 bg-[#1A1F29] border border-[#2D333F] rounded-xl text-xs text-slate-300 space-y-1">
+              <div className="flex items-center justify-between text-[#00ED64] font-bold font-mono">
+                <span>Account Role: User</span>
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+              <p className="text-slate-400 text-[11px] font-sans">
+                Standard user accounts get full hybrid search and diagnostic privileges. Administrative capabilities (ingestion, batch re-indexing, index repair) are restricted to pre-provisioned system credentials (e.g. <span className="text-emerald-400 font-mono">admin@documind.ai</span>).
+              </p>
             </div>
           )}
 
