@@ -864,18 +864,53 @@ Provide a concise, direct, professional answer (2-3 paragraphs max) answering th
 Include explicit inline citations like [Doc 1], [Doc 2] whenever referencing information.`;
 
     let text = '';
+    let modelUsed = 'NVIDIA z-ai/glm-5.2';
+
     try {
-      const ai = getGeminiClient();
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt
+      const apiKey = process.env.NVIDIA_API_KEY;
+      if (!apiKey) throw new Error('NVIDIA_API_KEY unconfigured');
+
+      const nvRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        signal: AbortSignal.timeout(12000),
+        body: JSON.stringify({
+          model: 'z-ai/glm-5.2',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 1,
+          top_p: 1,
+          max_tokens: 4096,
+          seed: 42
+        })
       });
-      text = response.text || '';
-    } catch (e: any) {
-      console.warn('[Gemini Grounded Synthesis]: API key missing or call failed. Using contextual document synthesis.');
-      text = documents.slice(0, 3).map((d: any, i: number) => 
-        `According to [Doc ${i + 1} - ${d.title}]: ${d.content}`
-      ).join('\n\n');
+
+      if (!nvRes.ok) {
+        const errorBody = await nvRes.text();
+        throw new Error(`NVIDIA API HTTP ${nvRes.status}: ${errorBody}`);
+      }
+
+      const nvData = await nvRes.json();
+      text = nvData.choices?.[0]?.message?.content || '';
+    } catch (nvErr: any) {
+      console.warn(`[NVIDIA AI API Notice]: ${nvErr?.message || nvErr}. Trying Gemini fallback...`);
+      try {
+        const ai = getGeminiClient();
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: prompt
+        });
+        text = response.text || '';
+        modelUsed = 'Gemini 3.6 Flash';
+      } catch (gemErr: any) {
+        console.warn('[Grounded Synthesis]: API keys unconfigured or call failed. Using contextual document synthesis.');
+        text = documents.slice(0, 3).map((d: any, i: number) => 
+          `According to [Doc ${i + 1} - ${d.title}]: ${d.content}`
+        ).join('\n\n');
+        modelUsed = 'Local Context Synthesizer';
+      }
     }
 
     const citations = documents.slice(0, 5).map((d: any, i: number) => ({
@@ -886,7 +921,8 @@ Include explicit inline citations like [Doc 1], [Doc 2] whenever referencing inf
 
     res.json({
       summary: text,
-      citations
+      citations,
+      modelUsed
     });
   } catch (err: any) {
     console.error('Gemini synthesis error:', err);
