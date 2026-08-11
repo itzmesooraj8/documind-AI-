@@ -84,7 +84,7 @@ Synthesizes concise, executive-level summaries based **only** on top retrieved s
 Create a `.env` file in the root directory:
 
 ```env
-MONGODB_URI="mongodb+srv://brokeinside06_db_user:sooraj2006@hackathon.osjnfin.mongodb.net/documind?retryWrites=true&w=majority"
+MONGODB_URI="mongodb+srv://<username>:<password>@cluster.mongodb.net/documind?retryWrites=true&w=majority"
 PYTHON_SERVICE_URL="http://localhost:8000"
 JWT_SECRET="documind_enterprise_jwt_secret_key_2026_prod_secure"
 GEMINI_API_KEY="your_gemini_api_key_here"
@@ -139,7 +139,7 @@ npm run dev:all
 
 - **User Role**: Full access to Live Hybrid Search, Diagnostic Lens, Search Quality Lab, and Query Logs.
 - **Admin Role**: Unlocks Document Ingestion, Batch Index Repair, and Stale Index Corruption Simulation.
-  - Demo Admin Credentials: `admin@documind.ai` / `admin123`
+  - *Demo Note*: Quick login credentials (`admin@documind.ai` / `admin123`) are mock accounts seeded in application memory for instant evaluation convenience. They do not access database connection secrets.
 
 ---
 
